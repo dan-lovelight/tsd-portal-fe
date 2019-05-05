@@ -1,6 +1,3 @@
-// This file should always contain the most up to date versions of these functions
-// Copy from here to other files if updates are reqeuired
-
 // Takes an error object, and a boolean that indicates if the error should be thrown again
 // logError(*callingFunction*, arguments, err, Knack.getUserAttributes(), window.location.href, true)
 async function logError(callerFunction, args, err, user, url, throwAgain) {
@@ -46,7 +43,7 @@ function updateLog(entry) {
 
 // Send webhook to Zapier
 async function triggerZap(endPoint, dataObject, logEntry) {
-
+  if (testEnv) endPoint = 'j5kcuf' // redirect the hook if just testing
   const zapierAccount = '2107870/'
   const rootURL = 'https://hooks.zapier.com/hooks/catch/'
   const url = rootURL + zapierAccount + endPoint

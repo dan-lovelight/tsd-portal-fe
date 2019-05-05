@@ -1,6 +1,3 @@
-// This file should always contain the most up to date versions of these functions
-// Copy from here to other files if updates are reqeuired
-
 // Required general utilities
 // > updateLog
 
