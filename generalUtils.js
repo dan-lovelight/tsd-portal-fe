@@ -11,6 +11,7 @@ async function logError(callerFunction, args, err, user, url, throwAgain) {
 
   // Build an error log entry, in this case for Slack
   let logMessage = `Error in *${callerName} (` + callerArgsNames.toString().replace(/,/g, ', ') + `)*:exclamation:\n`
+  logMessage += '> *when*: ' + Date.now() + '\n'
   logMessage += `> *user*: ${user.name} (${user.email})\n`
   logMessage += `> *url*: ${url} \n`
   for (var i = 0; i < callerArgs.length; ++i) {
