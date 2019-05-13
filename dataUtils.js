@@ -1,8 +1,10 @@
 // Required general utilities
 // > updateLog
 
+const userToken = Knack.getUserToken()
+
 const mySecureKnackHeaders = {
-  'Authorization': Knack.getUserToken(),
+  'Authorization': userToken,
   'X-Knack-Application-Id': Knack.application_id,
   'X-Knack-REST-API-KEY': 'knack',
   'Content-Type': 'application/json'

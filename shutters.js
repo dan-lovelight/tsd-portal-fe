@@ -61,6 +61,12 @@ https: //builder.knack.com/lovelight/shutters#pages/scene_434
     hideEmptyTables(scene);
   });
 
+  // Hide empty tables in Review page
+  https: //builder.knack.com/lovelight/shutters#pages/scene_221
+    $(document).on('knack-scene-render.scene_221', function(event, scene) {
+      hideEmptyTables(scene);
+    });
+
 /**************************************************/
 /**** Add functionality to shiping management page*/
 /* https://apps.lovelight.com.au/shutters#ship/plan-shipment-orders
@@ -486,67 +492,41 @@ $(document).on('knack-view-render.view_480', function(event, view) {
   });
 })
 
-$(document).on('knack-view-render.view_481', function(event, view, data) {
-
-  $('<div id="chart_div"></div><div id="chart_center"></div>').insertAfter($("#view_481"));
-
-  google.charts.load("current", {
-    packages: ["corechart"]
-  });
-  google.charts.setOnLoadCallback(drawChart);
-
-  function drawChart() {
-    var data = google.visualization.arrayToDataTable([
-      ['Classification', 'Responses'],
-      ['Promoters', 21],
-      ['Neutrals', 1],
-      ['Detractors', 1]
-    ]);
-
-    var options = {
-      pieSliceText: 'none',
-      pieHole: 0.5,
-      slices: [{
-        color: 'green'
-      }, {
-        color: 'orange'
-      }, {
-        color: 'red'
-      }]
-    };
-
-    var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
-    chart.draw(data, options);
-
-    $('#chart_center').text('87');
-
-  }
-
-});
-
-//*** Knack has bug that prevents sample data being pulled in for zapier form submisission. These functions are work arounds***//
+//**************************************************************
+//*************** UPDATE CUSTOMER NAME *************************
+//**************************************************************
 
 // Check customer's name after order submission
 // FORM: https://builder.knack.com/lovelight/shutters#pages/scene_340/views/view_645
-// ZAP: https://zapier.com/app/editor/44011268/overview
 $(document).on('knack-form-submit.view_645', function(event, view, record) {
   updateName(record);
 });
 
 // Check customer's name after NEW order submission
 // FORM: https://builder.knack.com/lovelight/shutters#pages/scene_368/views/view_722
-// ZAP: https://zapier.com/app/editor/44011268/overview
 $(document).on('knack-form-submit.view_722', function(event, view, record) {
   updateName(record);
 });
 
 // Check customer's name after update in order details form
 // FORM: https://builder.knack.com/lovelight/shutters#pages/scene_279/views/view_512
-// ZAP: https://zapier.com/app/editor/42975960/nodes/42975960/fields
 $(document).on('knack-form-submit.view_512', function(event, view, record) {
-  console.log(record);
   updateName(record);
 });
+
+//Update customer's details in Drip
+function updateName(record) {
+
+  var data = {};
+
+  data.name = record.field_2;
+  data.firstName = record.field_2_raw.first;
+  data.lastName = record.field_2_raw.last;
+  data.email = record.field_3_raw.email;
+
+  triggerZap("qa2igy", data, "Update customer's name new");
+
+}
 
 //**************************************************************
 //*************** ORDER DELIVERY *******************************
@@ -555,8 +535,6 @@ $(document).on('knack-form-submit.view_512', function(event, view, record) {
 //Shutters Order Deliver page, catch button click
 //https://apps.lovelight.com.au/shutters#deliver/
 $(document).on('knack-scene-render.scene_213', function(event, scene) {
-
-  //To validate phone numbers: ^\w{0,4}(\+614|614|04)
 
   var hasRecords = false;
 
@@ -585,7 +563,7 @@ $(document).on('knack-scene-render.scene_213', function(event, scene) {
   $("#btnDispatch").click(function() {
     //Trigger Zap that checks for dispatched orders in Machship
     swal("Dispatch check in progress", "A search is underway for recently 'Manifested' orders in Machship. If found, these orders will be moved to Dispatched Status.", "success");
-    sendHookToZapier("https://hooks.zapier.com/hooks/catch/2107870/e32rsn/", {
+    triggerZap('e32rsn', {
       "just": "do it"
     }, "Check for dispatched orders");
   });
@@ -598,7 +576,7 @@ $(document).on('knack-scene-render.scene_213', function(event, scene) {
       .then((value) => {
         if (value) {
           swal("Notifications being sent!", "Email and SMS notifications are now being sent to all customers in the list below.", "success");
-          sendHookToZapier("https://hooks.zapier.com/hooks/catch/2107870/ed8txc/", {
+          triggerZap('ed8txc', {
             "just": "do it"
           }, "Send notifications");
         }
@@ -615,7 +593,7 @@ $(document).on('knack-form-submit.view_387', function(event, view, record) {
   data.orderID = record.id;
   data.orderNumber = record.field_237;
 
-  sendHookToZapier("https://hooks.zapier.com/hooks/catch/2107870/eds13n/", data, "Check Machship for Order");
+  triggerZap('eds13n', data, "Check Machship for Order");
 });
 
 //Manual Notification
@@ -627,7 +605,7 @@ $(document).on('knack-form-submit.view_750', function(event, view, record) {
   data.order = record.id;
   data.trackingLink = record.field_653_raw.split('"')[1];
 
-  sendHookToZapier("https://hooks.zapier.com/hooks/catch/2107870/gtvdqo/", data, "Send Notification");
+  triggerZap('gtvdqo', data, "Send Notification");
 });
 
 //**************************************************************
@@ -640,7 +618,7 @@ $(document).on('knack-scene-render.scene_370', function(event, scene) {
   $("#btnDeliver").click(function() {
     //Trigger Zap that checks for delivered orders in Machship
     swal("Delivery check in progress", "We're checking Machship for delivery status updates. Reload the page in a few minutes to see changes.", "success");
-    sendHookToZapier("https://hooks.zapier.com/hooks/catch/2107870/etl00g/", {
+    triggerZap('etl00g', {
       "just": "do it"
     }, "Check for delivered orders");
   });
@@ -661,7 +639,7 @@ $(document).on('knack-scene-render.scene_379', function(event, scene) {
       .then((value) => {
         if (value) {
           swal("Emails being sent!", "Emails are now beling sent via Zendesk", "success");
-          sendHookToZapier("https://hooks.zapier.com/hooks/catch/2107870/e1202q/", {
+          triggerZap('e1202q', {
             "just": "do it",
             "today": moment().format("DD/MM/YYYY")
           }, "Send sample push email");
@@ -755,9 +733,9 @@ $(document).on('knack-form-submit.view_642', function(event, view, record) {
   Knack.hideSpinner
 })
 
-// Updates an order submitter record with the passed email, by linking to the passed company
-// User must have tradePartnerAdmin role
-async function linkOrderSubmitterToCompanyPromise(userEmail, tradePartnerCompanyId) {
+  // Updates an order submitter record with the passed email, by linking to the passed company
+  // User must have tradePartnerAdmin role
+  async function linkOrderSubmitterToCompanyPromise(userEmail, tradePartnerCompanyId) {
 
   let submittersFilter = {
     "match": "and",
@@ -804,7 +782,7 @@ $(document).on('knack-form-submit.view_898', function(event, view, record) {
 // Sets the password reset flag for the target users
 // User must have tradePartnerAdmin role
 async function makeUserResetPassword(userEmail) {
-debugger
+
   let filter = {
     "match": "and",
     "rules": [{
@@ -849,7 +827,6 @@ $(document).on('knack-scene-render.scene_425', function(event, scene) {
     let button = `<div class="kn-list order-form" id="${buttonID}" style="margin-bottom:10px"><a class="kn-button kn-view-asset" data-field-key="${dataFieldKey}" data-asset-id="${dataAssetID}" data-file-name="${dataFileName}" href=${downloadLink}><i class="fa fa-download"></i>&nbsp;Download ${productName} Order Form</a></div>`
 
     $(button).appendTo($('#kn-input-field_312'));
-    console.log(productName, buttonID)
 
   })
 
@@ -907,14 +884,14 @@ $(document).on('knack-form-submit.view_838', function(event, view, record) {
 async function applyDiscountToOrder(order) {
   try {
     let productID = order.field_312_raw[0].id
-    let productDetails = await getViewRecordPromise(443, 870, productID)
+    let productDetails = await getViewRecordPromise(443, 870, productID) //There is a permissions issue here
     let listPrice = productDetails.field_802_raw
     let tradePartnerCompanyId = order.field_536_raw[0].id
     let tradePartnerAccountDetails = await getViewRecordPromise(443, 874, tradePartnerCompanyId) // This will need to change if discount is per product
     let discount = tradePartnerAccountDetails.field_787_raw
     let orderValue = order.field_117_raw * listPrice * (1 - discount) * 1.1
     let data = { 'field_64': orderValue }
-    let updatedOrder = await updateViewPromise(475, 946, order.id, data)
+    let updatedOrder = await updateViewPromise(425, 947, order.id, data)
     // Create invoices line items here
     return updatedOrder
   } catch (err) {
@@ -947,6 +924,8 @@ function linkContactToTradePartner(record) {
   let tradePartnersUsersObject = 'object_39'
   let tradePartnersCompanyObject = 'object_40'
   let userDetails = Knack.getUserAttributes()
+
+
 
   Promise.resolve(userDetails)
     .then((user) => {
@@ -1237,20 +1216,6 @@ function sendHookToZapier(url, data, description) {
   });
 }
 
-//Update customer's details in Drip
-function updateName(record) {
-
-  var data = {};
-
-  data.name = record.field_2;
-  data.firstName = record.field_2_raw.first;
-  data.lastName = record.field_2_raw.last;
-  data.email = record.field_3_raw.email;
-
-  sendHookToZapier("https://hooks.zapier.com/hooks/catch/2107870/qa2igy/", data, "Update customer's name new");
-
-}
-
 // Takes a document id and merge id in format 235633/qt2we1
 // Sends data to webmerge
 function sendDataToWebmerge(urlSlug, data, isTest) {
@@ -1271,3 +1236,43 @@ function sendDataToWebmerge(urlSlug, data, isTest) {
 
   });
 }
+
+// ********** UNDER DEVELOPMENT
+
+$(document).on('knack-view-render.view_481', function(event, view, data) {
+
+  $('<div id="chart_div"></div><div id="chart_center"></div>').insertAfter($("#view_481"));
+
+  google.charts.load("current", {
+    packages: ["corechart"]
+  });
+  google.charts.setOnLoadCallback(drawChart);
+
+  function drawChart() {
+    var data = google.visualization.arrayToDataTable([
+      ['Classification', 'Responses'],
+      ['Promoters', 21],
+      ['Neutrals', 1],
+      ['Detractors', 1]
+    ]);
+
+    var options = {
+      pieSliceText: 'none',
+      pieHole: 0.5,
+      slices: [{
+        color: 'green'
+      }, {
+        color: 'orange'
+      }, {
+        color: 'red'
+      }]
+    };
+
+    var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+    chart.draw(data, options);
+
+    $('#chart_center').text('87');
+
+  }
+
+});

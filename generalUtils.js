@@ -8,11 +8,16 @@ async function logError(callerFunction, args, err, user, url, throwAgain) {
 
   // Build an error log entry, in this case for Slack
   let logMessage = `Error in *${callerName} (` + callerArgsNames.toString().replace(/,/g, ', ') + `)*:exclamation:\n`
-  logMessage += '> *when*: ' + Date.now() + '\n'
+  logMessage += '> *when*: ' + moment().format('LLLL') + '\n'
   logMessage += `> *user*: ${user.name} (${user.email})\n`
   logMessage += `> *url*: ${url} \n`
   for (var i = 0; i < callerArgs.length; ++i) {
-    logMessage += `> *${callerArgsNames[i]}*: ` + JSON.stringify(callerArgs[i]) + '\n'
+    if (typeof callerArgsNames[i] === 'object' && callerArgsNames[i] !== null){ // Is the variable an object?
+      // Put message in code bock if it's an object
+      logMessage += `*${callerArgsNames[i]}*: ` + '```' + JSON.stringify(callerArgs[i]) + '```' + '\n'
+    } else {
+      logMessage += `> *${callerArgsNames[i]}*: ` + JSON.stringify(callerArgs[i]).slice(0,500) + '\n'
+    }
   }
   logMessage += '```' + err.stack + '```'
   await updateLog(logMessage) // Send message to Slack
