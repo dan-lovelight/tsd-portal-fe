@@ -57,15 +57,15 @@ $(document).on('knack-scene-render.scene_366', function(event, scene) {
 
 // Hide empty tables in Wholesale new order page
 https: //builder.knack.com/lovelight/shutters#pages/scene_434
-  $(document).on('knack-scene-render.scene_434', function(event, scene) {
-    hideEmptyTables(scene);
-  });
+$(document).on('knack-scene-render.scene_434', function(event, scene) {
+  hideEmptyTables(scene);
+});
 
-  // Hide empty tables in Review page
-  https: //builder.knack.com/lovelight/shutters#pages/scene_221
-    $(document).on('knack-scene-render.scene_221', function(event, scene) {
-      hideEmptyTables(scene);
-    });
+// Hide empty tables in Review page
+https: //builder.knack.com/lovelight/shutters#pages/scene_221
+$(document).on('knack-scene-render.scene_221', function(event, scene) {
+  hideEmptyTables(scene);
+});
 
 /**************************************************/
 /**** Add functionality to shiping management page*/
@@ -224,8 +224,8 @@ $(document).on('knack-view-render.view_477', function(event, view) {
   $('#sampleSent').click(function() {
 
     swal("Confirm", "We send SMS notifications using the requestors first name. Have you reviewed all selected names and made any necessary changes?", "warning", {
-        buttons: [true, "Yep, schedule notifications!"]
-      })
+      buttons: [true, "Yep, schedule notifications!"]
+    })
       .then((value) => {
 
         if (value) {
@@ -571,8 +571,8 @@ $(document).on('knack-scene-render.scene_213', function(event, scene) {
   $("#btnNotify").click(function() {
     //Trigger Zap that checks for dispatched orders in Machship
     swal("Confirm", "Send a STANDARD email and SMS notification to each of the below customers?", "warning", {
-        buttons: [true, "Do it!"]
-      })
+      buttons: [true, "Do it!"]
+    })
       .then((value) => {
         if (value) {
           swal("Notifications being sent!", "Email and SMS notifications are now being sent to all customers in the list below.", "success");
@@ -634,8 +634,8 @@ $(document).on('knack-scene-render.scene_379', function(event, scene) {
   $("#btnSamplePush").click(function() {
     //Trigger Zap that sends email via ZD
     swal("Confirm", "Send sales push email to everyone on the list below?", "warning", {
-        buttons: [true, "Do it!"]
-      })
+      buttons: [true, "Do it!"]
+    })
       .then((value) => {
         if (value) {
           swal("Emails being sent!", "Emails are now beling sent via Zendesk", "success");
@@ -733,9 +733,9 @@ $(document).on('knack-form-submit.view_642', function(event, view, record) {
   Knack.hideSpinner
 })
 
-  // Updates an order submitter record with the passed email, by linking to the passed company
-  // User must have tradePartnerAdmin role
-  async function linkOrderSubmitterToCompanyPromise(userEmail, tradePartnerCompanyId) {
+// Updates an order submitter record with the passed email, by linking to the passed company
+// User must have tradePartnerAdmin role
+async function linkOrderSubmitterToCompanyPromise(userEmail, tradePartnerCompanyId) {
 
   let submittersFilter = {
     "match": "and",
@@ -749,7 +749,7 @@ $(document).on('knack-form-submit.view_642', function(event, view, record) {
 
   try {
     let orderSubmitter = await filterViewPromise(335, 940, submittersFilter) // Find the Order Submitter Record
-    let data = {'field_545': [tradePartnerCompanyId]}
+    let data = { 'field_545': [tradePartnerCompanyId] }
     orderSubmitter = await updateViewPromise(472, 941, orderSubmitter[0].id, data) // Update with trade tradePartnerCompany
     return orderSubmitter
   } catch (err) {
@@ -795,7 +795,7 @@ async function makeUserResetPassword(userEmail) {
 
   try {
     let account = await filterViewPromise(335, 944, filter) // Find the account to be udpated
-    let data = {'field_814': 'Yes'}
+    let data = { 'field_814': 'Yes' }
     account = await updateViewPromise(475, 946, account[0].id, data) // Update password reset to yes
     return account
   } catch (err) {
@@ -1091,9 +1091,9 @@ function getKnackDataUsingFilter(object, filter) {
   let search = '?rows_per_page=1000&filters=' + encodeURI(JSON.stringify(filter))
   url = url + search
   return fetch(url, {
-      method: 'GET',
-      headers: myKnackHeaders
-    })
+    method: 'GET',
+    headers: myKnackHeaders
+  })
     .then(catchFetchErrors)
     .then((resp) => {
       return resp.json()
@@ -1109,9 +1109,9 @@ function getKnackDataUsingFilter(object, filter) {
 function getKnackRecordUsingId(object, id) {
   let url = 'https://api.knack.com/v1/objects/' + object + '/records/' + id
   return fetch(url, {
-      method: 'GET',
-      headers: myKnackHeaders
-    })
+    method: 'GET',
+    headers: myKnackHeaders
+  })
     .then(catchFetchErrors)
     .then((resp) => {
       return resp.json()
@@ -1229,7 +1229,7 @@ function sendDataToWebmerge(urlSlug, data, isTest) {
     url: url,
     data: data,
     type: 'POST',
-    success: function(data) {},
+    success: function(data) { },
     error: function(jqxhr, status, exception) {
       console.log(exception)
     }
