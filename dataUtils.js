@@ -1,15 +1,3 @@
-// Required general utilities
-// > updateLog
-
-const userToken = Knack.getUserToken()
-
-const mySecureKnackHeaders = {
-  'Authorization': userToken,
-  'X-Knack-Application-Id': Knack.application_id,
-  'X-Knack-REST-API-KEY': 'knack',
-  'Content-Type': 'application/json'
-}
-
 // Returns an array of records
 async function filterViewPromise(scene, view, filter) {
 
