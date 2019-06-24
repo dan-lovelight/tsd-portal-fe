@@ -1,3 +1,19 @@
+// Refresh data in all views in passed in array of view_keys
+function refreshViews(arrayOfViewKeys) {
+  arrayOfViewKeys.forEach(viewKey => {
+    Knack.views[viewKey].model.fetch();
+  })
+}
+
+// Return an array of record IDs from a table view with checkboxes
+function getCheckedRowRecordIds(view) {
+  let recordIds = [];
+  $('#' + view.key + ' tbody input[type=checkbox]:checked').each(function() {
+    recordIds.push($(this).closest('tr').attr('id')); // record id
+  });
+  return recordIds
+}
+
 // Takes an error object, and a boolean that indicates if the error should be thrown again
 // logError(*callingFunction*, arguments, err, Knack.getUserAttributes(), window.location.href, true)
 async function logError(callerFunction, args, err, user, url, throwAgain) {
@@ -48,7 +64,7 @@ function updateLog(entry) {
 
 // Send webhook to Zapier
 async function triggerZap(endPoint, dataObject, logEntry) {
-  if (testEnv) endPoint = 'j5kcuf' // redirect the hook if just testing
+  //if (testEnv) endPoint = 'j5kcuf' // redirect the hook if just testing
   const zapierAccount = '2107870/'
   const rootURL = 'https://hooks.zapier.com/hooks/catch/'
   const url = rootURL + zapierAccount + endPoint
