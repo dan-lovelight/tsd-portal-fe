@@ -57,15 +57,15 @@ $(document).on('knack-scene-render.scene_366', function(event, scene) {
 
 // Hide empty tables in Wholesale new order page
 https: //builder.knack.com/lovelight/shutters#pages/scene_434
-$(document).on('knack-scene-render.scene_434', function(event, scene) {
-  hideEmptyTables(scene);
-});
+  $(document).on('knack-scene-render.scene_434', function(event, scene) {
+    hideEmptyTables(scene);
+  });
 
 // Hide empty tables in Review page
 https: //builder.knack.com/lovelight/shutters#pages/scene_221
-$(document).on('knack-scene-render.scene_221', function(event, scene) {
-  hideEmptyTables(scene);
-});
+  $(document).on('knack-scene-render.scene_221', function(event, scene) {
+    hideEmptyTables(scene);
+  });
 
 /**************************************************/
 /**** Add functionality to shiping management page*/
@@ -211,77 +211,60 @@ $(document).on('knack-view-render.view_477', function(event, view) {
 
   // Add an update button
   $('<div style="padding:15px 15px 15px 0px"><a id="sampleSent" class="kn-button">Mark Checked As Sent Today</a></div>').insertAfter($('#view_477 .view-header'));
-
   // Add button for webmerge
   $('#view_477 #sampleSent').after('<div style="padding:15px; display:inline"><a id="webmerge" class="kn-button">Email eParcel Consignment File</a></div>');
-
   // Add checkboxes to our table
   addCheckboxes(view);
 
   /********************************************/
   //***Click event for the mark sent button***//
-
   $('#sampleSent').click(function() {
+    sendSampleNotifications(view)
+  })
 
-    swal("Confirm", "We send SMS notifications using the requestors first name. Have you reviewed all selected names and made any necessary changes?", "warning", {
-      buttons: [true, "Yep, schedule notifications!"]
-    })
-      .then((value) => {
+  function sendSampleNotifications(view) {
+    Swal.fire({
+        title: 'Are you sure?',
+        html: "<span>We send SMS notifications using the requestors first name. Have you reviewed all selected names and made any necessary changes?</span>",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yep, schedule notifications!',
+        showLoaderOnConfirm: true,
+        preConfirm: updateSampleSentDate,
+        allowOutsideClick: () => !Swal.isLoading()
+      })
+      .then((result) => {
+        if (result.value) {
+          refreshViews([view.key, 'view_486'])
+          Swal.fire(
+            'Records updated!',
+            'Notifications will be sent on the next scheduled run.',
+            'success'
+          )
+        }
+      })
 
-        if (value) {
-          // We need an array of record IDs
-          var record_ids = [];
-
-          // Populate the record IDs using all checked rows
-          $('#' + view.key + ' tbody input[type=checkbox]:checked').each(function() {
-            record_ids.push($(this).closest('tr').attr('id')); // record id
-          });
-
-          swal("Sample status being updated!", "Sample notifications queued for " + record_ids.length + " people. Queued sample dispatch notifications are sent a 9am and 3pm every day", "success")
-            .then((value) => {
-
-              Knack.showSpinner();
-
-              //Prepare data for update
-              var data = {
-                field_454: moment().format("DD/MM/YYYY"),
-                field_453: 'Sent'
-              };
-
-              // set the delay to prevent hitting API rate limit (milliseconds)
-              var myDelay = 0;
-
-              //call updateRecords function
-              $(function() {
-                updateRecords(record_ids.shift(), record_ids, data);
-              });
-
-              function updateRecords(id, records, data) {
-
-                $.ajax({
-                  url: 'https://api.knack.com/v1/pages/scene_467/views/view_934/records/' + id,
-                  type: 'PUT',
-                  headers: {
-                    'Authorization': Knack.getUserToken(),
-                    'X-Knack-Application-Id': Knack.application_id,
-                    'X-Knack-REST-API-KEY': 'knack',
-                    'Content-Type': 'application/json'
-                  },
-                  data: JSON.stringify(data),
-                  success: function(response) {
-                    if (record_ids.length > 0) {
-                      setTimeout(updateRecords(record_ids.shift(), record_ids, data), myDelay);
-                    } else {
-                      Knack.hideSpinner();
-                      Knack.views["view_477"].model.fetch();
-                    } //end if
-                  } //end success
-                }) //end ajax
-              } //end update records
-            }); //end .then for second modal
-        } //end if confirm from first modal
-      }) // end .then for first modal
-  }) //end click
+    async function updateSampleSentDate() {
+      let recordIds = getCheckedRowRecordIds(view)
+      let data = {
+        field_454: moment().format("DD/MM/YYYY"),
+        field_453: 'Sent'
+      };
+      try {
+        for (i = 0; i < recordIds.length; i++) {
+          Swal.getContent().querySelector('span').textContent = `Updating ${i + 1} of ${recordIds.length}`
+          await updateRecordPromise('object_35', recordIds[i], data)
+          // updateViewPromise(view.scene.key, view.key, recordIds[i], data)
+        }
+      } catch (err) {
+        Swal.showValidationMessage(
+          `Request failed: ${err}`
+        )
+      }
+    }
+  }
 
   /********************************************/
   //***Click event for the webmerge button***//
@@ -382,73 +365,54 @@ $(document).on('knack-view-render.view_480', function(event, view) {
   addCheckboxes(view);
 
   // Click event for the update button
+  //***Click event for the mark sent button***//
   $('#sampleSent').click(function() {
+    sendSampleNotifications(view)
+  })
 
-    // We need an array of record IDs
-    var record_ids = [];
-
-    // Populate the record IDs using all checked rows
-    $('#' + view.key + ' tbody input[type=checkbox]:checked').each(function() {
-      record_ids.push($(this).closest('tr').attr('id')); // record id
-    });
-
-    Knack.showSpinner();
-
-    // Get today's date for update
-    var today = new Date();
-    var dd = today.getDate();
-    var mm = today.getMonth() + 1; //January is 0!
-    var yyyy = today.getFullYear();
-
-    if (dd < 10) {
-      dd = '0' + dd
-    }
-
-    if (mm < 10) {
-      mm = '0' + mm
-    }
-
-    today = dd + '/' + mm + '/' + yyyy;
-    console.log(today);
-
-    //Prepare datea for update
-    var data = {
-      field_454: today,
-      field_453: 'Sent'
-    };
-
-    // set the delay to prevent hitting API rate limit (milliseconds)
-    var myDelay = 0;
-
-    //call updateRecords function
-    $(function() {
-      updateRecords(record_ids.shift(), record_ids, data);
-    });
-
-    function updateRecords(id, records, data) {
-
-      $.ajax({
-        url: 'https://api.knack.com/v1/pages/scene_467/views/view_934/records/' + id,
-        type: 'PUT',
-        headers: {
-          'Authorization': Knack.getUserToken(),
-          'X-Knack-Application-Id': Knack.application_id,
-          'X-Knack-REST-API-KEY': 'knack',
-          'Content-Type': 'application/json'
-        },
-        data: JSON.stringify(data),
-        success: function(response) {
-          if (record_ids.length > 0) {
-            setTimeout(updateRecords(record_ids.shift(), record_ids, data), myDelay);
-          } else {
-            Knack.hideSpinner();
-            Knack.views["view_480"].model.fetch();
-          }
+  function sendSampleNotifications(view) {
+    Swal.fire({
+        title: 'Are you sure?',
+        html: "<span>We send SMS notifications using the requestors first name. Have you reviewed all selected names and made any necessary changes?</span>",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yep, schedule notifications!',
+        showLoaderOnConfirm: true,
+        preConfirm: updateSampleSentDate,
+        allowOutsideClick: () => !Swal.isLoading()
+      })
+      .then((result) => {
+        if (result.value) {
+          refreshViews([view.key])
+          Swal.fire(
+            'Records updated!',
+            'Notifications will be sent on the next scheduled run.',
+            'success'
+          )
         }
       })
-      alert('records updated');
+
+    async function updateSampleSentDate() {
+      let recordIds = getCheckedRowRecordIds(view)
+      let data = {
+        field_454: moment().format("DD/MM/YYYY"),
+        field_453: 'Sent'
+      };
+      try {
+        for (i = 0; i < recordIds.length; i++) {
+          Swal.getContent().querySelector('span').textContent = `Updating ${i + 1} of ${recordIds.length}`
+          await updateRecordPromise('object_35', recordIds[i], data)
+          // updateViewPromise(view.scene.key, view.key, recordIds[i], data)
+        }
+      } catch (err) {
+        Swal.showValidationMessage(
+          `Request failed: ${err}`
+        )
+      }
     }
-  })
+  }
 
   // link hander: Print Report
   $('#webmerge').click(function(event) {
@@ -561,26 +525,39 @@ $(document).on('knack-scene-render.scene_213', function(event, scene) {
   }
 
   $("#btnDispatch").click(function() {
-    //Trigger Zap that checks for dispatched orders in Machship
-    swal("Dispatch check in progress", "A search is underway for recently 'Manifested' orders in Machship. If found, these orders will be moved to Dispatched Status.", "success");
-    triggerZap('e32rsn', {
-      "just": "do it"
-    }, "Check for dispatched orders");
-  });
+    Swal.fire({
+        title: 'Dispatch check in progress',
+        html: "A search is underway for recently 'Manifested' orders in Machship. If found, these orders will be moved to Dispatched Status.",
+        type: 'success',
+        onBeforeOpen: triggerZap('e32rsn', {
+          "just": "do it"
+        }, "Check for dispatched orders")
+      })
+  })
 
   $("#btnNotify").click(function() {
-    //Trigger Zap that checks for dispatched orders in Machship
-    swal("Confirm", "Send a STANDARD email and SMS notification to each of the below customers?", "warning", {
-      buttons: [true, "Do it!"]
-    })
-      .then((value) => {
-        if (value) {
-          swal("Notifications being sent!", "Email and SMS notifications are now being sent to all customers in the list below.", "success");
-          triggerZap('ed8txc', {
-            "just": "do it"
-          }, "Send notifications");
+    Swal.fire({
+        title: 'Are you sure?',
+        html: "Send a STANDARD email and SMS notification to each of the below customers?",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Do it!',
+        preConfirm: triggerZap('ed8txc', {
+          "just": "do it"
+        }, "Send notifications"),
+      })
+      .then((result) => {
+        if (result.value) {
+          refreshViews([view.key])
+          Swal.fire(
+            'Notifications being sent!',
+            'Email and SMS notifications are now being sent to all customers in the list below.',
+            'success'
+          )
         }
-      });
+      })
   });
 
 });
@@ -617,7 +594,7 @@ $(document).on('knack-scene-render.scene_370', function(event, scene) {
 
   $("#btnDeliver").click(function() {
     //Trigger Zap that checks for delivered orders in Machship
-    swal("Delivery check in progress", "We're checking Machship for delivery status updates. Reload the page in a few minutes to see changes.", "success");
+    Swal.fire("Delivery check in progress", "We're checking Machship for delivery status updates. Reload the page in a few minutes to see changes.", "success");
     triggerZap('etl00g', {
       "just": "do it"
     }, "Check for delivered orders");
@@ -634,8 +611,8 @@ $(document).on('knack-scene-render.scene_379', function(event, scene) {
   $("#btnSamplePush").click(function() {
     //Trigger Zap that sends email via ZD
     swal("Confirm", "Send sales push email to everyone on the list below?", "warning", {
-      buttons: [true, "Do it!"]
-    })
+        buttons: [true, "Do it!"]
+      })
       .then((value) => {
         if (value) {
           swal("Emails being sent!", "Emails are now beling sent via Zendesk", "success");
@@ -749,7 +726,9 @@ async function linkOrderSubmitterToCompanyPromise(userEmail, tradePartnerCompany
 
   try {
     let orderSubmitter = await filterViewPromise(335, 940, submittersFilter) // Find the Order Submitter Record
-    let data = { 'field_545': [tradePartnerCompanyId] }
+    let data = {
+      'field_545': [tradePartnerCompanyId]
+    }
     orderSubmitter = await updateViewPromise(472, 941, orderSubmitter[0].id, data) // Update with trade tradePartnerCompany
     return orderSubmitter
   } catch (err) {
@@ -795,7 +774,9 @@ async function makeUserResetPassword(userEmail) {
 
   try {
     let account = await filterViewPromise(335, 944, filter) // Find the account to be udpated
-    let data = { 'field_814': 'Yes' }
+    let data = {
+      'field_814': 'Yes'
+    }
     account = await updateViewPromise(475, 946, account[0].id, data) // Update password reset to yes
     return account
   } catch (err) {
@@ -890,7 +871,9 @@ async function applyDiscountToOrder(order) {
     let tradePartnerAccountDetails = await getViewRecordPromise(443, 874, tradePartnerCompanyId) // This will need to change if discount is per product
     let discount = tradePartnerAccountDetails.field_787_raw
     let orderValue = order.field_117_raw * listPrice * (1 - discount) * 1.1
-    let data = { 'field_64': orderValue }
+    let data = {
+      'field_64': orderValue
+    }
     let updatedOrder = await updateViewPromise(425, 947, order.id, data)
     // Create invoices line items here
     return updatedOrder
@@ -1091,9 +1074,9 @@ function getKnackDataUsingFilter(object, filter) {
   let search = '?rows_per_page=1000&filters=' + encodeURI(JSON.stringify(filter))
   url = url + search
   return fetch(url, {
-    method: 'GET',
-    headers: myKnackHeaders
-  })
+      method: 'GET',
+      headers: myKnackHeaders
+    })
     .then(catchFetchErrors)
     .then((resp) => {
       return resp.json()
@@ -1109,9 +1092,9 @@ function getKnackDataUsingFilter(object, filter) {
 function getKnackRecordUsingId(object, id) {
   let url = 'https://api.knack.com/v1/objects/' + object + '/records/' + id
   return fetch(url, {
-    method: 'GET',
-    headers: myKnackHeaders
-  })
+      method: 'GET',
+      headers: myKnackHeaders
+    })
     .then(catchFetchErrors)
     .then((resp) => {
       return resp.json()
@@ -1229,7 +1212,7 @@ function sendDataToWebmerge(urlSlug, data, isTest) {
     url: url,
     data: data,
     type: 'POST',
-    success: function(data) { },
+    success: function(data) {},
     error: function(jqxhr, status, exception) {
       console.log(exception)
     }
