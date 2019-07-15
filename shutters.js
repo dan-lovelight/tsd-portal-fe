@@ -25,12 +25,14 @@ $(document).on('knack-form-submit.view_979', function(event, view, record) {
 });
 
 //Update customer's details in Drip
-function sendText(record) {
+async function sendText(record) {
 
-  var data = {};
+  let customer = await getRecordPromise('object_1',record.field_866_raw[0].id)
+  let data = {};
 
   data.message = record.field_861_raw
   data.phone = record.field_863_raw.number
+  data.email = customer.field_3_raw.email
 
   triggerZap("oobtr0t", data, "Send Text Message");
 

@@ -32,7 +32,8 @@ async function logError(callerFunction, args, err, user, url, throwAgain) {
       // Put message in code bock if it's an object
       logMessage += `*${callerArgsNames[i]}*: ` + '```' + JSON.stringify(callerArgs[i]) + '```' + '\n'
     } else {
-      logMessage += `> *${callerArgsNames[i]}*: ` + JSON.stringify(callerArgs[i]).slice(0,500) + '\n'
+      let param = callerArgs[i] ? JSON.stringify(callerArgs[i]).slice(0,500) + '\n' : 'undefined \n'
+      logMessage += `> *${callerArgsNames[i]}*: ` + param
     }
   }
   logMessage += '```' + err.stack + '```'
