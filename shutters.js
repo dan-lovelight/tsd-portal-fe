@@ -1,25 +1,21 @@
 // Text messages //
 $(document).on('knack-scene-render.scene_487', function(event, scene) {
-  // Do something after the scene renders
-  $('#view_980 div.kn-detail.field_692').hide()
+  // Get user/customer names
   let customerName = $('#view_980 div.kn-detail.field_692 span > span')[0].innerHTML
   let userName = Knack.getUserAttributes().name.split(' ')[0]
+  $('#view_980 div.kn-detail.field_692').hide()
+
   // Update the quick select options
-  let = $msgOptions = $("#kn-input-field_864 > div label")
+  let = $msgOptions = $("#kn-input-field_864 > div")
+  let newMsg = $msgOptions[0].innerHTML.replace(/{{customer}}/g,customerName).replace(/{{user}}/g,userName)
+  $msgOptions[0].innerHTML = newMsg
 
-  $msgOptions.each(index => {
-    let newMsg = $msgOptions[index].innerHTML.replace('{{customer}}',customerName).replace('{{user}}',userName).split('>')
-    $msgOptions[index].innerHTML = newMsg[0] + '>' + newMsg[1]
-  })
-
+  // Add selected option to editable text area
   let = radioButton = $("#kn-input-field_864 > div label > input")
   radioButton.click(function(event){
     $('#field_861')[0].value = event.currentTarget.defaultValue
-    console.log(event)
   })
 
-  // let newHTML = $msgOptions[0].innerHTML.replace('{{customer}}',customerName)
-  // $msgOptions.parseHTML(newHTML)
 });
 
 // Sent text message
