@@ -1,3 +1,45 @@
+// Text messages //
+$(document).on('knack-scene-render.scene_487', function(event, scene) {
+  // Do something after the scene renders
+  $('#view_980 div.kn-detail.field_692').hide()
+  let customerName = $('#view_980 div.kn-detail.field_692 span > span')[0].innerHTML
+  let userName = Knack.getUserAttributes().name.split(' ')[0]
+  // Update the quick select options
+  let = $msgOptions = $("#kn-input-field_864 > div label")
+
+  $msgOptions.each(index => {
+    let newMsg = $msgOptions[index].innerHTML.replace('{{customer}}',customerName).replace('{{user}}',userName).split('>')
+    $msgOptions[index].innerHTML = newMsg[0] + '>' + newMsg[1]
+  })
+
+  let = radioButton = $("#kn-input-field_864 > div label > input")
+  radioButton.click(function(event){
+    $('#field_861')[0].value = event.currentTarget.defaultValue
+    console.log(event)
+  })
+
+  // let newHTML = $msgOptions[0].innerHTML.replace('{{customer}}',customerName)
+  // $msgOptions.parseHTML(newHTML)
+});
+
+// Sent text message
+// FORM: https://builder.knack.com/lovelight/shutters#pages/scene_487/views/view_979
+$(document).on('knack-form-submit.view_979', function(event, view, record) {
+  sendText(record);
+});
+
+//Update customer's details in Drip
+function sendText(record) {
+
+  var data = {};
+
+  data.message = record.field_861_raw
+  data.phone = record.field_863_raw.number
+
+  triggerZap("oobtr0t", data, "Send Text Message");
+
+}
+
 //******** Global changes *************//
 // Change the way address input fields appear
 $(document).on('knack-scene-render.any', function(event, scene) {
