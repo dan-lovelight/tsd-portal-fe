@@ -1217,14 +1217,15 @@ function generatePassword() {
 }
 
 function hideEmptyTables(scene) {
-  //Iterate throught eacy view in the page
+  //Iterate throught each view in the page
   scene.views.map(function(view) {
-    //If the view has row data (ie it's a table) AND that data is 0...
-    if (Knack.models[view.key].data && Knack.models[view.key].data.length < 1) {
-      //Hide it
-      $('#' + view.key).remove();
+    // If the view has row data (ie it's a table) AND that data is 0...
+    if (view.type === 'table' && Knack.models[view.key]) {
+      if (Knack.models[view.key].data.length === 0) {
+        $('#' + view.key).remove()
+      }
     }
-  });
+  })
 }
 
 //Send a hook to Zapier
